@@ -28,6 +28,13 @@ def get_format():
 
 def extract_date(dateLabel, timeLabel):
     date = xbmc.getInfoLabel(dateLabel)
+    language = xbmc.getLanguage(xbmc.ENGLISH_NAME)
+    xbmc.log("Language: " + language, xbmc.LOGWARNING)
+    if (language == 'German') :
+        # locale de_DE is not known in LibreElec 9.2.6
+        date = date.replace('Sonntag','Sunday').replace('Montag','Monday').replace('Dienstag','Tuesday').replace('Mittwoch','Wednesday').replace('Donnerstag','Thursady').replace('Freitag','Friday').replace('Samstag','Saturday')
+        date = date.replace('Januar','January').replace('Februar','February').replace('Maerz','March').replace('April','April').replace('Mai','May').replace('Juni','June').replace('Juli','July').replace('Oktober','October')
+
     timeString = xbmc.getInfoLabel(timeLabel)
     fullDate = "{}, {}".format(date, timeString)
 
@@ -39,21 +46,6 @@ def extract_date(dateLabel, timeLabel):
     return datetime.strftime(parsedDate, DATE_FORMAT)
 
 
-def get_language():
-    try:
-        language = xbmc.getLanguage(xbmc.ISO_639_1, True)
-        languageParts = language.split("-")
-        return "{}_{}.UTF-8".format(languageParts[0], languageParts[1])
-    except:
-        return ""
-
-
-try:
-    usedLocale = locale.setlocale(locale.LC_TIME, get_language())
-except:
-    usedLocale = locale.setlocale(locale.LC_TIME, "")
-log("Used locale: " + usedLocale)
-
 fullFormat = get_format()
 
 channel = escape(xbmc.getInfoLabel("ListItem.ChannelName"))
@@ -62,6 +54,7 @@ title = escape(xbmc.getInfoLabel("ListItem.Label"))
 try:
     start = extract_date("ListItem.StartDate", "ListItem.StartTime")
     stop = extract_date("ListItem.EndDate", "ListItem.EndTime")
+    xbmc.log("Record info: {} {} {} - {}".format(channel, title, start, stop), xbmc.LOGWARNING)
 
     try:
         cmd = "PlayMedia(plugin://plugin.video.iptv.recorder/record_epg/%s/%s/%s/%s)" % (channel,

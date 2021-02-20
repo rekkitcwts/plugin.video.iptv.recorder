@@ -545,7 +545,7 @@ def record_epg(channelname, name, start, stop):
     start = get_utc_from_string(start.decode("utf8"))
     stop = get_utc_from_string(stop.decode("utf8"))
 
-    log("Scheduling record for '{}: {} ({} to {})'".format(channelname, name, start, stop))
+    xbmc.log("Scheduling record for '{}: ({} to {})'".format(channelname, start, stop),xbmc.LOGINFO)
 
     do_refresh = False
     watch = False
