@@ -1433,8 +1433,9 @@ def remind_always_search_plot(channelid, channelname):
 @plugin.route('/broadcast/<programmeid>/<channelname>')
 def broadcast(programmeid, channelname):
     channelname = channelname.decode("utf8")
-    #channelname = urllib.unquote_plus(channelname)
-    #log(channelname)
+    # channelname = urllib.unquote_plus(channelname)
+    log('PROGRAMMEID: '  + programmeid)
+    log('CHANNELNAME: '  + channelname)
 
     conn = sqlite3.connect(xbmc.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
     cursor = conn.cursor()
@@ -1442,17 +1443,10 @@ def broadcast(programmeid, channelname):
     programme = cursor.execute('SELECT channelid, title, start AS "start [TIMESTAMP]", stop AS "stop [TIMESTAMP]", episode FROM programmes WHERE uid=? LIMIT 1', (programmeid, )).fetchone()
     channelid, title, start, stop, episode = programme
 
-    #channel = cursor.execute("SELECT * FROM streams WHERE tvg_id=? AND tvg_name=?", (channelid, channelname)).fetchone()
-    channel = cursor.execute("SELECT * FROM streams WHERE name=?", (channelname,)).fetchone()
-    if not channel:
-        channel = cursor.execute("SELECT * FROM channels WHERE tvg_name=?", (channelname, )).fetchone()
-        uid, tvg_id, name, tvg_logo = channel
-        url = ""
-    else:
-        uid, name, tvg_name, tvg_id, tvg_logo, groups, url = channel
+    channel = cursor.execute("SELECT * FROM streams WHERE tvg_id=?", (channelid,)).fetchone()
+    uid, name, tvg_name, tvg_id, tvg_logo, groups, url = channel
     thumbnail = tvg_logo
-    if not channelname:
-        channelname = name
+    channelname = name
 
     echannelid = channelid.encode("utf8")
     echannelname = channelname.encode("utf8")

@@ -33,7 +33,7 @@ def extract_date(dateLabel, timeLabel):
     if (language == 'German') :
         # locale de_DE is not known in LibreElec 9.2.6
         date = date.replace('Sonntag','Sunday').replace('Montag','Monday').replace('Dienstag','Tuesday').replace('Mittwoch','Wednesday').replace('Donnerstag','Thursady').replace('Freitag','Friday').replace('Samstag','Saturday')
-        date = date.replace('Januar','January').replace('Februar','February').replace('Maerz','March').replace('April','April').replace('Mai','May').replace('Juni','June').replace('Juli','July').replace('Oktober','October')
+        date = date.replace('Januar','January').replace('Februar','February').replace('M\xe4rz','March').replace('April','April').replace('Mai','May').replace('Juni','June').replace('Juli','July').replace('Oktober','October')
 
     timeString = xbmc.getInfoLabel(timeLabel)
     fullDate = "{}, {}".format(date, timeString)
