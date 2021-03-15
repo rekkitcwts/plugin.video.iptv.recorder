@@ -37,7 +37,16 @@ def addon_id():
 def log(v):
     xbmc.log(repr(v), xbmc.LOGERROR)
 
-
+def linkFromJWPlayer(jwpLink):
+    fp = urllib.urlopen("http://player.mediaklikk.hu/playernew/player.php?video=dunalive")
+    htmljs = fp.read().decode("utf8")
+    fp.close()
+    m3 = re.match(r'(.*)pl\.setup\((.*?)\)\;', htmljs, re.DOTALL)
+    y = json.loads(m3.group(2))
+    m3streamUrl = y['playlist'][0]['file']
+    # ex: //c402-node61-cdn.connectmedia.hu/1102/49c290585c874a82e0b39d4f3c2708b2/60449c37/index.m3u8?v=5i
+    if not m3streamUrl.startswith('http'): m3streamUrl = 'http:' + m3streamUrl
+    return m3streamUrl
 
 plugin = Plugin()
 big_list_view = True
@@ -125,6 +134,9 @@ def play_channel(channelname):
     if not channel:
         return
     uid, name, tvg_name, tvg_id, tvg_logo, groups, url = channel
+
+    log('********* play_channel: ' + url)
+
     #plugin.set_resolved_url(url)
     xbmc.Player().play(url)
 
@@ -2863,8 +2875,16 @@ def xmltv():
                 if groups:
                     groups = groups.group(1) or None
 
+
+                httpUrl = url.strip();
+                if tvg_id == "Duna TV" :
+                    xbmc.log("DUNA LINK ORIGINAL " + httpUrl, xbmc.LOGERROR)
+                    httpUrl = linkFromJWPlayer(httpUrl)
+                    xbmc.log("DUNA LINK NEW " + httpUrl, xbmc.LOGERROR)
+
+
                 conn.execute("INSERT OR IGNORE INTO streams(name, tvg_name, tvg_id, tvg_logo, groups, url) VALUES (?, ?, ?, ?, ?, ?)",
-                [name, tvg_name, tvg_id, tvg_logo, groups, url.strip()])
+                [name, tvg_name, tvg_id, tvg_logo, groups, httpUrl])
 
                 i += 1
                 percent = 0 + int(100.0 * i / total)
