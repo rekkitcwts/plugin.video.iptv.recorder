@@ -38,7 +38,7 @@ def log(v):
     xbmc.log(repr(v), xbmc.LOGERROR)
 
 def linkFromJWPlayer(jwpLink):
-    fp = urllib.urlopen("http://player.mediaklikk.hu/playernew/player.php?video=dunalive")
+    fp = urllib.urlopen(jwpLink)
     htmljs = fp.read().decode("utf8")
     fp.close()
     m3 = re.match(r'(.*)pl\.setup\((.*?)\)\;', htmljs, re.DOTALL)
