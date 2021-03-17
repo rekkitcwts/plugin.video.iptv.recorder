@@ -2877,10 +2877,10 @@ def xmltv():
 
 
                 httpUrl = url.strip();
-                if tvg_id == "Duna TV" :
-                    xbmc.log("DUNA LINK ORIGINAL " + httpUrl, xbmc.LOGERROR)
-                    httpUrl = linkFromJWPlayer(httpUrl)
-                    xbmc.log("DUNA LINK NEW " + httpUrl, xbmc.LOGERROR)
+                if httpUrl[0:7] == "jwpl://" :
+                    xbmc.log("# JWPL LINK ORIGINAL " + httpUrl[7:], xbmc.LOGERROR)
+                    httpUrl = linkFromJWPlayer(httpUrl[7:])
+                    xbmc.log("# JWPL LINK NEW " + httpUrl, xbmc.LOGERROR)
 
 
                 conn.execute("INSERT OR IGNORE INTO streams(name, tvg_name, tvg_id, tvg_logo, groups, url) VALUES (?, ?, ?, ?, ?, ?)",
