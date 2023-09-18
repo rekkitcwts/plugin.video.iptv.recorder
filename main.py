@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 from xbmcswift2 import Plugin, ListItem
-from HTMLParser import HTMLParser
+# istvan from HTMLParser import HTMLParser
+import html.parser as HTMLParser
+
 from collections import namedtuple
 from datetime import datetime, timedelta, tzinfo
 from language import get_string as _
@@ -11,7 +13,7 @@ import chardet
 import ctypes
 import glob
 import gzip
-import StringIO
+from io import StringIO as StringIO
 import json
 import os, os.path
 import platform
@@ -93,7 +95,7 @@ def delete(path):
     xbmcvfs.rmdir(path)
 
 def rmdirs(path):
-    path = xbmc.translatePath(path)
+    path = xbmcvfs.translatePath(path)
     dirs, files = xbmcvfs.listdir(path)
     for dir in dirs:
         rmdirs(os.path.join(path,dir))
@@ -101,7 +103,7 @@ def rmdirs(path):
 
 
 def find(path):
-    path = xbmc.translatePath(path)
+    path = xbmcvfs.translatePath(path)
     all_dirs = []
     all_files = []
     dirs, files = xbmcvfs.listdir(path)
@@ -123,10 +125,10 @@ def find(path):
 
 @plugin.route('/play_channel/<channelname>')
 def play_channel(channelname):
-    channelname = channelname.decode("utf8")
+    # (istvan) channelname = channelname.decode("utf8")
     #channelname = urllib.quote_plus(channelname.encode("utf8"))
 
-    conn = sqlite3.connect(xbmc.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')))
+    conn = sqlite3.connect(xbmcvfs.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')))
     c = conn.cursor()
 
     channel = c.execute("SELECT * FROM streams WHERE name=?", (channelname, )).fetchone()
@@ -143,10 +145,10 @@ def play_channel(channelname):
 
 @plugin.route('/play_channel_external/<channelname>')
 def play_channel_external(channelname):
-    channelname = channelname.decode("utf8")
+    # (istvan) channelname = channelname.decode("utf8")
     #channelname = urllib.quote_plus(channelname.encode("utf8"))
 
-    conn = sqlite3.connect(xbmc.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')))
+    conn = sqlite3.connect(xbmcvfs.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')))
     c = conn.cursor()
 
     channel = c.execute("SELECT * FROM streams WHERE name=?", (channelname, )).fetchone()
@@ -175,7 +177,7 @@ def play_external(path):
     if args:
         cmd.append(args)
 
-    cmd.append(xbmc.translatePath(path))
+    cmd.append(xbmcvfs.translatePath(path))
 
     subprocess.Popen(cmd,shell=windows())
 
@@ -206,7 +208,7 @@ def total_seconds(td):
 
 @plugin.route('/jobs')
 def jobs():
-    conn = sqlite3.connect(xbmc.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
+    conn = sqlite3.connect(xbmcvfs.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
     cursor = conn.cursor()
 
     jobs = cursor.execute("SELECT * FROM jobs ORDER by channelname, start").fetchall()
@@ -250,7 +252,7 @@ def jobs():
 
 @plugin.route('/rules')
 def rules():
-    conn = sqlite3.connect(xbmc.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
+    conn = sqlite3.connect(xbmcvfs.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
     cursor = conn.cursor()
 
     rules = cursor.execute('SELECT uid, channelid, channelname, title, start AS "start [TIMESTAMP]", stop AS "stop [TIMESTAMP]", description, type, name FROM rules ORDER by channelname, title, start, stop').fetchall()
@@ -313,7 +315,7 @@ def delete_all_rules(ask=True):
     if ask and not (xbmcgui.Dialog().yesno("IPTV Recorder", _("Delete All Rules?"))):
         return
 
-    conn = sqlite3.connect(xbmc.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
+    conn = sqlite3.connect(xbmcvfs.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
     cursor = conn.cursor()
 
     conn.execute("DELETE FROM rules")
@@ -326,7 +328,7 @@ def delete_all_rules(ask=True):
 
 @plugin.route('/delete_rule/<uid>')
 def delete_rule(uid, ask=True):
-    conn = sqlite3.connect(xbmc.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
+    conn = sqlite3.connect(xbmcvfs.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
     cursor = conn.cursor()
 
     if ask and not (xbmcgui.Dialog().yesno("IPTV Recorder", _("Cancel Record?"))):
@@ -345,7 +347,7 @@ def delete_all_jobs(ask=True):
     if ask and not (xbmcgui.Dialog().yesno("IPTV Recorder", _("Delete All Jobs?"))):
         return
 
-    conn = sqlite3.connect(xbmc.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
+    conn = sqlite3.connect(xbmcvfs.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
     cursor = conn.cursor()
 
     conn.execute("DELETE FROM jobs")
@@ -358,7 +360,7 @@ def delete_all_jobs(ask=True):
 
 @plugin.route('/delete_job/<job>')
 def delete_job(job, kill=True, ask=True):
-    conn = sqlite3.connect(xbmc.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
+    conn = sqlite3.connect(xbmcvfs.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
     cursor = conn.cursor()
 
     job_details = cursor.execute("SELECT uuid FROM jobs WHERE uuid=?", (job, )).fetchone()
@@ -417,7 +419,7 @@ def delete_ffmpeg():
 
 
 def ffmpeg_location():
-    ffmpeg_src = xbmc.translatePath(plugin.get_setting('ffmpeg'))
+    ffmpeg_src = xbmcvfs.translatePath(plugin.get_setting('ffmpeg'))
 
     if xbmc.getCondVisibility('system.platform.android'):
         ffmpeg_dst = '/data/data/%s/ffmpeg' % android_get_current_appid()
@@ -449,7 +451,7 @@ def ffmpeg_location():
 @plugin.route('/record_once/<programmeid>/<channelid>/<channelname>')
 def record_once(programmeid, channelid, channelname, do_refresh=True, watch=False, remind=False):
     channelid = channelid.decode("utf8")
-    channelname = channelname.decode("utf8")
+    # (istvan) channelname = channelname.decode("utf8")
     start = None
     stop = None
     threading.Thread(target=record_once_thread,args=[programmeid, do_refresh, watch, remind, channelid, channelname, start, stop, False, None]).start()
@@ -458,7 +460,7 @@ def record_once(programmeid, channelid, channelname, do_refresh=True, watch=Fals
 @plugin.route('/watch_once/<programmeid>/<channelid>/<channelname>')
 def watch_once(programmeid, channelid, channelname, do_refresh=True, watch=True, remind=False):
     channelid = channelid.decode("utf8")
-    channelname = channelname.decode("utf8")
+    # (istvan) channelname = channelname.decode("utf8")
     start = None
     stop = None
     threading.Thread(target=record_once_thread,args=[programmeid, do_refresh, watch, remind, channelid, channelname, start, stop, False, None]).start()
@@ -467,7 +469,7 @@ def watch_once(programmeid, channelid, channelname, do_refresh=True, watch=True,
 @plugin.route('/remind_once/<programmeid>/<channelid>/<channelname>')
 def remind_once(programmeid, channelid, channelname, do_refresh=True, watch=False, remind=True):
     channelid = channelid.decode("utf8")
-    channelname = channelname.decode("utf8")
+    # (istvan) channelname = channelname.decode("utf8")
     start = None
     stop = None
     threading.Thread(target=record_once_thread,args=[programmeid, do_refresh, watch, remind, channelid, channelname, start, stop, False, None]).start()
@@ -476,7 +478,7 @@ def remind_once(programmeid, channelid, channelname, do_refresh=True, watch=Fals
 @plugin.route('/record_one_time/<channelname>')
 def record_one_time( channelname):
     #channelid = channelid.decode("utf8")
-    channelname = channelname.decode("utf8")
+    # (istvan) channelname = channelname.decode("utf8")
 
     utcnow = datetime.utcnow()
     ts = time.time()
@@ -517,7 +519,7 @@ def record_one_time( channelname):
 @plugin.route('/record_and_play/<channelname>')
 def record_and_play(channelname):
     #channelid = channelid.decode("utf8")
-    channelname = channelname.decode("utf8")
+    # (istvan) channelname = channelname.decode("utf8")
 
     utcnow = datetime.utcnow()
     ts = time.time()
@@ -544,15 +546,15 @@ def record_and_play(channelname):
 def record_once_time(channelid, channelname, start, stop, do_refresh=True, watch=False, remind=True, title=None):
     if channelid:
         channelid = channelid.decode("utf8")
-    channelname = channelname.decode("utf8")
+    # (istvan) channelname = channelname.decode("utf8")
     threading.Thread(target=record_once_thread,args=[None, do_refresh, watch, remind, channelid, channelname, start, stop, False, title]).start()
 
 
 @plugin.route('/record_epg/<channelname>/<name>/<start>/<stop>')
 def record_epg(channelname, name, start, stop):
 
-    channelname = channelname.decode("utf8")
-    name = name.decode("utf8")
+    # (istvan) channelname = channelname.decode("utf8")
+    # (istvan) name = name.decode("utf8")
 
     start = get_utc_from_string(start.decode("utf8"))
     stop = get_utc_from_string(stop.decode("utf8"))
@@ -582,7 +584,7 @@ def record_once_thread(programmeid, do_refresh=True, watch=False, remind=False, 
     #TODO check for ffmpeg process already recording if job is re-added
     #channelname = urllib.unquote_plus(channelname)
 
-    conn = sqlite3.connect(xbmc.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
+    conn = sqlite3.connect(xbmcvfs.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
     cursor = conn.cursor()
 
     if programmeid:
@@ -696,7 +698,7 @@ def record_once_thread(programmeid, do_refresh=True, watch=False, remind=False, 
     length = local_endtime - local_starttime
     seconds = total_seconds(length)
 
-    kodi_recordings = xbmc.translatePath(plugin.get_setting('recordings'))
+    kodi_recordings = xbmcvfs.translatePath(plugin.get_setting('recordings'))
     ffmpeg_recordings = plugin.get_setting('ffmpeg.recordings') or kodi_recordings
     if series:
         dir = os.path.join(kodi_recordings, "TV", folder)
@@ -783,15 +785,15 @@ def record_once_thread(programmeid, do_refresh=True, watch=False, remind=False, 
         else:
             f.write("cmd = %s\n" % repr(cmd))
         if debug:
-            f.write("stdout = open(r'%s','w+')\n" % xbmc.translatePath(pyjob+'.stdout.txt'))
-            f.write("stderr = open(r'%s','w+')\n" % xbmc.translatePath(pyjob+'.stderr.txt'))
+            f.write("stdout = open(r'%s','w+')\n" % xbmcvfs.translatePath(pyjob+'.stdout.txt'))
+            f.write("stderr = open(r'%s','w+')\n" % xbmcvfs.translatePath(pyjob+'.stderr.txt'))
             f.write("p = subprocess.Popen(cmd, stdout=stdout, stderr=stderr, shell=%s)\n" % windows())
         else:
             if (plugin.get_setting('ffmpeg.pipe') == 'true') and not (windows() and (plugin.get_setting('task.scheduler') == 'true')):
                 f.write("p = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=%s)\n" % windows())
             else:
                 f.write("p = subprocess.Popen(cmd, shell=%s)\n" % windows())
-        f.write("f = open(r'%s', 'w+')\n" % xbmc.translatePath(pyjob+'.pid'))
+        f.write("f = open(r'%s', 'w+')\n" % xbmcvfs.translatePath(pyjob+'.pid'))
         f.write("f.write(repr(p.pid))\n")
         f.write("f.close()\n")
         if (plugin.get_setting('ffmpeg.pipe') == 'true') and not (windows() and (plugin.get_setting('task.scheduler') == 'true')):
@@ -842,7 +844,7 @@ def record_once_thread(programmeid, do_refresh=True, watch=False, remind=False, 
         else:
             st = "%02d:%02d" % (local_starttime.hour, local_starttime.minute)
             sd = "%02d/%02d/%04d" % (local_starttime.day, local_starttime.month, local_starttime.year)
-            cmd = ["schtasks", "/create", "/f", "/tn", job, "/sc", "once", "/st", st, "/sd", sd, "/tr", "%s %s" % (xbmc.translatePath(plugin.get_setting('python')), xbmc.translatePath(pyjob))]
+            cmd = ["schtasks", "/create", "/f", "/tn", job, "/sc", "once", "/st", st, "/sd", sd, "/tr", "%s %s" % (xbmcvfs.translatePath(plugin.get_setting('python')), xbmcvfs.translatePath(pyjob))]
             subprocess.Popen(cmd, shell=True)
     else:
         now = datetime.now()
@@ -873,7 +875,7 @@ def record_once_thread(programmeid, do_refresh=True, watch=False, remind=False, 
 def convert(path):
     input = xbmcvfs.File(path,'rb')
     output = xbmcvfs.File(path.replace('.ts','.mp4'),'wb')
-    error = open(xbmc.translatePath("special://profile/addon_data/plugin.video.iptv.recorder/errors.txt"),"w")
+    error = open(xbmcvfs.translatePath("special://profile/addon_data/plugin.video.iptv.recorder/errors.txt"),"w")
 
     cmd = [ffmpeg_location(),"-fflags","+genpts","-y","-i","-","-vcodec","copy","-acodec","copy","-f", "mpegts", "-"]
     p = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=error, shell=windows())
@@ -904,7 +906,7 @@ def read_thread(p,output):
 def renew_jobs():
     #TODO check for ffmpeg process already recording if job is re-added
 
-    conn = sqlite3.connect(xbmc.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
+    conn = sqlite3.connect(xbmcvfs.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
     cursor = conn.cursor()
 
     try:
@@ -987,7 +989,7 @@ def refresh():
 @plugin.route('/record_daily_time/<channelname>')
 def record_daily_time(channelname):
     #channelid = channelid.decode("utf8")
-    channelname = channelname.decode("utf8")
+    # (istvan) channelname = channelname.decode("utf8")
 
     utcnow = datetime.utcnow()
     ts = time.time()
@@ -1009,7 +1011,7 @@ def record_daily_time(channelname):
 
     name = xbmcgui.Dialog().input("Rule Name").decode("utf8")
 
-    conn = sqlite3.connect(xbmc.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
+    conn = sqlite3.connect(xbmcvfs.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
     cursor = conn.cursor()
 
     channelid = None
@@ -1030,7 +1032,7 @@ def record_daily_time(channelname):
 @plugin.route('/record_weekly_time/<channelname>')
 def record_weekly_time(channelname):
     #channelid = channelid.decode("utf8")
-    channelname = channelname.decode("utf8")
+    # (istvan) channelname = channelname.decode("utf8")
 
     utcnow = datetime.utcnow()
     ts = time.time()
@@ -1058,7 +1060,7 @@ def record_weekly_time(channelname):
 
     name = xbmcgui.Dialog().input("Rule Name").decode("utf8")
 
-    conn = sqlite3.connect(xbmc.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
+    conn = sqlite3.connect(xbmcvfs.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
     cursor = conn.cursor()
 
     channelid = None
@@ -1079,14 +1081,14 @@ def record_weekly_time(channelname):
 @plugin.route('/record_daily/<channelid>/<channelname>/<title>/<start>/<stop>')
 def record_daily(channelid, channelname, title, start, stop):
     channelid = channelid.decode("utf8")
-    channelname = channelname.decode("utf8")
+    # (istvan) channelname = channelname.decode("utf8")
     title = title.decode("utf8")
     title = xbmcgui.Dialog().input(_("% is Wildcard"), title).decode("utf8")
 
     start = timestamp2datetime(float(start))
     stop = timestamp2datetime(float(stop))
 
-    conn = sqlite3.connect(xbmc.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
+    conn = sqlite3.connect(xbmcvfs.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
     cursor = conn.cursor()
 
     #TODO problem with PRIMARY KEYS, UNIQUE and TIMESTAMP
@@ -1105,14 +1107,14 @@ def record_daily(channelid, channelname, title, start, stop):
 @plugin.route('/record_weekly/<channelid>/<channelname>/<title>/<start>/<stop>')
 def record_weekly(channelid, channelname, title, start, stop):
     channelid = channelid.decode("utf8")
-    channelname = channelname.decode("utf8")
+    # (istvan) channelname = channelname.decode("utf8")
     title = title.decode("utf8")
     title = xbmcgui.Dialog().input(_("% is Wildcard"), title).decode("utf8")
 
     start = timestamp2datetime(float(start))
     stop = timestamp2datetime(float(stop))
 
-    conn = sqlite3.connect(xbmc.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
+    conn = sqlite3.connect(xbmcvfs.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
     cursor = conn.cursor()
 
     #TODO problem with PRIMARY KEYS, UNIQUE and TIMESTAMP
@@ -1131,11 +1133,11 @@ def record_weekly(channelid, channelname, title, start, stop):
 @plugin.route('/record_always/<channelid>/<channelname>/<title>')
 def record_always(channelid, channelname, title):
     channelid = channelid.decode("utf8")
-    channelname = channelname.decode("utf8")
+    # (istvan) channelname = channelname.decode("utf8")
     title = title.decode("utf8")
     title = xbmcgui.Dialog().input(_("% is Wildcard"), title).decode("utf8")
 
-    conn = sqlite3.connect(xbmc.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
+    conn = sqlite3.connect(xbmcvfs.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
     cursor = conn.cursor()
 
     rule = cursor.execute('SELECT * FROM rules WHERE channelid=? AND channelname=? AND title=? AND type=?', (channelid, channelname, title, "ALWAYS")).fetchone()
@@ -1153,13 +1155,13 @@ def record_always(channelid, channelname, title):
 @plugin.route('/record_always_search/<channelid>/<channelname>')
 def record_always_search(channelid, channelname):
     channelid = channelid.decode("utf8")
-    channelname = channelname.decode("utf8")
+    # (istvan) channelname = channelname.decode("utf8")
 
     title = xbmcgui.Dialog().input("IPTV Recorder: " + _("Title Search (% is wildcard)?")).decode("utf8")
     if not title:
         return
 
-    conn = sqlite3.connect(xbmc.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
+    conn = sqlite3.connect(xbmcvfs.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
     cursor = conn.cursor()
 
     rule = cursor.execute('SELECT * FROM rules WHERE channelid=? AND channelname=? AND title=? AND type=?', (channelid, channelname, title, "SEARCH")).fetchone()
@@ -1177,13 +1179,13 @@ def record_always_search(channelid, channelname):
 @plugin.route('/record_always_search_plot/<channelid>/<channelname>')
 def record_always_search_plot(channelid, channelname):
     channelid = channelid.decode("utf8")
-    channelname = channelname.decode("utf8")
+    # (istvan) channelname = channelname.decode("utf8")
 
     description = xbmcgui.Dialog().input("IPTV Recorder: " + _("Plot Search (% is wildcard)?")).decode("utf8")
     if not description:
         return
 
-    conn = sqlite3.connect(xbmc.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
+    conn = sqlite3.connect(xbmcvfs.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
     cursor = conn.cursor()
 
     rule = cursor.execute('SELECT * FROM rules WHERE channelid=? AND channelname=? AND description=? AND type=?', (channelid, channelname, description, "PLOT")).fetchone()
@@ -1201,14 +1203,14 @@ def record_always_search_plot(channelid, channelname):
 @plugin.route('/watch_daily/<channelid>/<channelname>/<title>/<start>/<stop>')
 def watch_daily(channelid, channelname, title, start, stop):
     channelid = channelid.decode("utf8")
-    channelname = channelname.decode("utf8")
+    # (istvan) channelname = channelname.decode("utf8")
     title = title.decode("utf8")
     title = xbmcgui.Dialog().input(_("% is Wildcard"), title).decode("utf8")
 
     start = timestamp2datetime(float(start))
     stop = timestamp2datetime(float(stop))
 
-    conn = sqlite3.connect(xbmc.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
+    conn = sqlite3.connect(xbmcvfs.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
     cursor = conn.cursor()
 
     #TODO problem with PRIMARY KEYS, UNIQUE and TIMESTAMP
@@ -1227,14 +1229,14 @@ def watch_daily(channelid, channelname, title, start, stop):
 @plugin.route('/watch_weekly/<channelid>/<channelname>/<title>/<start>/<stop>')
 def watch_weekly(channelid, channelname, title, start, stop):
     channelid = channelid.decode("utf8")
-    channelname = channelname.decode("utf8")
+    # (istvan) channelname = channelname.decode("utf8")
     title = title.decode("utf8")
     title = xbmcgui.Dialog().input(_("% is Wildcard"), title).decode("utf8")
 
     start = timestamp2datetime(float(start))
     stop = timestamp2datetime(float(stop))
 
-    conn = sqlite3.connect(xbmc.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
+    conn = sqlite3.connect(xbmcvfs.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
     cursor = conn.cursor()
 
     #TODO problem with PRIMARY KEYS, UNIQUE and TIMESTAMP
@@ -1253,11 +1255,11 @@ def watch_weekly(channelid, channelname, title, start, stop):
 @plugin.route('/watch_always/<channelid>/<channelname>/<title>')
 def watch_always(channelid, channelname, title):
     channelid = channelid.decode("utf8")
-    channelname = channelname.decode("utf8")
+    # (istvan) channelname = channelname.decode("utf8")
     title = title.decode("utf8")
     title = xbmcgui.Dialog().input(_("% is Wildcard"), title).decode("utf8")
 
-    conn = sqlite3.connect(xbmc.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
+    conn = sqlite3.connect(xbmcvfs.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
     cursor = conn.cursor()
 
     rule = cursor.execute('SELECT * FROM rules WHERE channelid=? AND channelname=? AND title=? AND type=?', (channelid, channelname, title, "WATCH ALWAYS")).fetchone()
@@ -1275,13 +1277,13 @@ def watch_always(channelid, channelname, title):
 @plugin.route('/watch_always_search/<channelid>/<channelname>')
 def watch_always_search(channelid, channelname):
     channelid = channelid.decode("utf8")
-    channelname = channelname.decode("utf8")
+    # (istvan) channelname = channelname.decode("utf8")
 
     title = xbmcgui.Dialog().input("IPTV watcher: " + _("Title Search (% is wildcard)?")).decode("utf8")
     if not title:
         return
 
-    conn = sqlite3.connect(xbmc.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
+    conn = sqlite3.connect(xbmcvfs.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
     cursor = conn.cursor()
 
     rule = cursor.execute('SELECT * FROM rules WHERE channelid=? AND channelname=? AND title=? AND type=?', (channelid, channelname, title, "WATCH SEARCH")).fetchone()
@@ -1299,13 +1301,13 @@ def watch_always_search(channelid, channelname):
 @plugin.route('/watch_always_search_plot/<channelid>/<channelname>')
 def watch_always_search_plot(channelid, channelname):
     channelid = channelid.decode("utf8")
-    channelname = channelname.decode("utf8")
+    # (istvan) channelname = channelname.decode("utf8")
 
     description = xbmcgui.Dialog().input("IPTV watcher: " + _("Plot Search (% is wildcard)?")).decode("utf8")
     if not description:
         return
 
-    conn = sqlite3.connect(xbmc.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
+    conn = sqlite3.connect(xbmcvfs.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
     cursor = conn.cursor()
 
     rule = cursor.execute('SELECT * FROM rules WHERE channelid=? AND channelname=? AND description=? AND type=?', (channelid, channelname, description, "WATCH PLOT")).fetchone()
@@ -1323,14 +1325,14 @@ def watch_always_search_plot(channelid, channelname):
 @plugin.route('/remind_daily/<channelid>/<channelname>/<title>/<start>/<stop>')
 def remind_daily(channelid, channelname, title, start, stop):
     channelid = channelid.decode("utf8")
-    channelname = channelname.decode("utf8")
+    # (istvan) channelname = channelname.decode("utf8")
     title = title.decode("utf8")
     title = xbmcgui.Dialog().input(_("% is Wildcard"), title).decode("utf8")
 
     start = timestamp2datetime(float(start))
     stop = timestamp2datetime(float(stop))
 
-    conn = sqlite3.connect(xbmc.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
+    conn = sqlite3.connect(xbmcvfs.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
     cursor = conn.cursor()
 
     #TODO problem with PRIMARY KEYS, UNIQUE and TIMESTAMP
@@ -1349,14 +1351,14 @@ def remind_daily(channelid, channelname, title, start, stop):
 @plugin.route('/remind_weekly/<channelid>/<channelname>/<title>/<start>/<stop>')
 def remind_weekly(channelid, channelname, title, start, stop):
     channelid = channelid.decode("utf8")
-    channelname = channelname.decode("utf8")
+    # (istvan) channelname = channelname.decode("utf8")
     title = title.decode("utf8")
     title = xbmcgui.Dialog().input(_("% is Wildcard"), title).decode("utf8")
 
     start = timestamp2datetime(float(start))
     stop = timestamp2datetime(float(stop))
 
-    conn = sqlite3.connect(xbmc.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
+    conn = sqlite3.connect(xbmcvfs.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
     cursor = conn.cursor()
 
     #TODO problem with PRIMARY KEYS, UNIQUE and TIMESTAMP
@@ -1375,11 +1377,11 @@ def remind_weekly(channelid, channelname, title, start, stop):
 @plugin.route('/remind_always/<channelid>/<channelname>/<title>')
 def remind_always(channelid, channelname, title):
     channelid = channelid.decode("utf8")
-    channelname = channelname.decode("utf8")
+    # (istvan) channelname = channelname.decode("utf8")
     title = title.decode("utf8")
     title = xbmcgui.Dialog().input(_("% is Wildcard"), title).decode("utf8")
 
-    conn = sqlite3.connect(xbmc.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
+    conn = sqlite3.connect(xbmcvfs.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
     cursor = conn.cursor()
 
     rule = cursor.execute('SELECT * FROM rules WHERE channelid=? AND channelname=? AND title=? AND type=?', (channelid, channelname, title, "REMIND ALWAYS")).fetchone()
@@ -1397,13 +1399,13 @@ def remind_always(channelid, channelname, title):
 @plugin.route('/remind_always_search/<channelid>/<channelname>')
 def remind_always_search(channelid, channelname):
     channelid = channelid.decode("utf8")
-    channelname = channelname.decode("utf8")
+    # (istvan) channelname = channelname.decode("utf8")
 
     title = xbmcgui.Dialog().input("IPTV reminder: " + _("Title Search (% is wildcard)?")).decode("utf8")
     if not title:
         return
 
-    conn = sqlite3.connect(xbmc.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
+    conn = sqlite3.connect(xbmcvfs.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
     cursor = conn.cursor()
 
     rule = cursor.execute('SELECT * FROM rules WHERE channelid=? AND channelname=? AND title=? AND type=?', (channelid, channelname, title, "REMIND SEARCH")).fetchone()
@@ -1421,13 +1423,13 @@ def remind_always_search(channelid, channelname):
 @plugin.route('/remind_always_search_plot/<channelid>/<channelname>')
 def remind_always_search_plot(channelid, channelname):
     channelid = channelid.decode("utf8")
-    channelname = channelname.decode("utf8")
+    # (istvan) channelname = channelname.decode("utf8")
 
     description = xbmcgui.Dialog().input("IPTV reminder: " + _("Plot Search (% is wildcard)?")).decode("utf8")
     if not description:
         return
 
-    conn = sqlite3.connect(xbmc.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
+    conn = sqlite3.connect(xbmcvfs.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
     cursor = conn.cursor()
 
     rule = cursor.execute('SELECT * FROM rules WHERE channelid=? AND channelname=? AND description=? AND type=?', (channelid, channelname, description, "REMIND PLOT")).fetchone()
@@ -1444,12 +1446,12 @@ def remind_always_search_plot(channelid, channelname):
 
 @plugin.route('/broadcast/<programmeid>/<channelname>')
 def broadcast(programmeid, channelname):
-    channelname = channelname.decode("utf8")
+    # (istvan) channelname = channelname.decode("utf8")
     # channelname = urllib.unquote_plus(channelname)
     log('PROGRAMMEID: '  + programmeid)
     log('CHANNELNAME: '  + channelname)
 
-    conn = sqlite3.connect(xbmc.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
+    conn = sqlite3.connect(xbmcvfs.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
     cursor = conn.cursor()
 
     programme = cursor.execute('SELECT channelid, title, start AS "start [TIMESTAMP]", stop AS "stop [TIMESTAMP]", episode FROM programmes WHERE uid=? LIMIT 1', (programmeid, )).fetchone()
@@ -1694,7 +1696,7 @@ def search_title(title):
         searches = plugin.get_storage('search_title')
         searches[title] = ''
 
-    conn = sqlite3.connect(xbmc.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
+    conn = sqlite3.connect(xbmcvfs.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
     cursor = conn.cursor()
 
     programmes = cursor.execute(
@@ -1759,7 +1761,7 @@ def search_plot(plot):
     plot = plot.decode("utf8")
 
     #TODO combine with search_title() and group()
-    conn = sqlite3.connect(xbmc.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
+    conn = sqlite3.connect(xbmcvfs.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
     cursor = conn.cursor()
 
     programmes = cursor.execute(
@@ -1808,7 +1810,7 @@ def search_categories_dialog():
 @plugin.route('/search_categories_input/<categories>')
 def search_categories_input(categories):
     categories = categories.decode("utf8")
-    conn = sqlite3.connect(xbmc.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
+    conn = sqlite3.connect(xbmcvfs.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
     cursor = conn.cursor()
 
     programmes = cursor.execute('SELECT DISTINCT categories FROM programmes').fetchall()
@@ -1845,7 +1847,7 @@ def search_categories(categories):
         searches[categories] = ''
 
     #TODO combine with search_title() and group()
-    conn = sqlite3.connect(xbmc.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
+    conn = sqlite3.connect(xbmcvfs.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
     cursor = conn.cursor()
 
     programmes = cursor.execute(
@@ -1862,9 +1864,9 @@ def search_categories(categories):
 def channel(channelid,channelname):
     channelid = channelid.decode("utf8")
     echannelname = channelname
-    channelname = channelname.decode("utf8")
+    # (istvan) channelname = channelname.decode("utf8")
 
-    conn = sqlite3.connect(xbmc.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
+    conn = sqlite3.connect(xbmcvfs.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
     cursor = conn.cursor()
 
     channel = cursor.execute("SELECT * FROM streams WHERE tvg_id=?", (channelid, )).fetchone()
@@ -1895,7 +1897,7 @@ def channel(channelid,channelname):
 def tv_show(title):
     title = title.decode("utf8")
 
-    conn = sqlite3.connect(xbmc.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
+    conn = sqlite3.connect(xbmcvfs.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
     cursor = conn.cursor()
 
     programmes = cursor.execute(
@@ -1911,7 +1913,7 @@ def tv_show(title):
 def other(title):
     title = title.decode("utf8")
 
-    conn = sqlite3.connect(xbmc.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
+    conn = sqlite3.connect(xbmcvfs.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
     cursor = conn.cursor()
 
     programmes = cursor.execute(
@@ -1927,7 +1929,7 @@ def other(title):
 def category(title):
     title = title.decode("utf8")
 
-    conn = sqlite3.connect(xbmc.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
+    conn = sqlite3.connect(xbmcvfs.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
     cursor = conn.cursor()
 
     programmes = cursor.execute(
@@ -1943,7 +1945,7 @@ def category(title):
 def movie(title, date):
     title = title.decode("utf8")
 
-    conn = sqlite3.connect(xbmc.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
+    conn = sqlite3.connect(xbmcvfs.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
     cursor = conn.cursor()
 
     if date != "None":
@@ -1961,9 +1963,9 @@ def movie(title, date):
 
 def listing(programmes, scroll=False, channelname=None):
     if channelname:
-        channelname = urllib.unquote_plus(channelname.decode("utf8"))
+        channelname = urllib.unquote_plus(channelname)
 
-    conn = sqlite3.connect(xbmc.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
+    conn = sqlite3.connect(xbmcvfs.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
     cursor = conn.cursor()
 
     streams = cursor.execute("SELECT * FROM streams").fetchall()
@@ -2127,9 +2129,9 @@ def focus(i):
 
 @plugin.route('/remove_favourite_channel/<channelname>')
 def remove_favourite_channel(channelname):
-    channelname = channelname.decode("utf8")
+    # (istvan) channelname = channelname.decode("utf8")
 
-    conn = sqlite3.connect(xbmc.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')))
+    conn = sqlite3.connect(xbmcvfs.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')))
 
     conn.execute("DELETE FROM favourites WHERE channelname=?", (channelname, ))
 
@@ -2142,9 +2144,9 @@ def remove_favourite_channel(channelname):
 @plugin.route('/add_favourite_channel/<channelname>/<channelid>/<thumbnail>')
 def add_favourite_channel(channelname, channelid, thumbnail):
     channelid = channelid.decode("utf8")
-    channelname = channelname.decode("utf8")
+    # (istvan) channelname = channelname.decode("utf8")
 
-    conn = sqlite3.connect(xbmc.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')))
+    conn = sqlite3.connect(xbmcvfs.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')))
 
     conn.execute("INSERT OR REPLACE INTO favourites(channelname, channelid, logo) VALUES(?, ?, ?)",
     [channelname, channelid, thumbnail])
@@ -2191,7 +2193,7 @@ def group(channelgroup=None,section=None):
 
     show_now_next = False
 
-    conn = sqlite3.connect(xbmc.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
+    conn = sqlite3.connect(xbmcvfs.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
     cursor = conn.cursor()
 
     if plugin.get_setting('sort.channels') == 'true':
@@ -2270,10 +2272,6 @@ def group(channelgroup=None,section=None):
                 #continue
             thumbnail = tvg_logo or logos.get(channelid) or channel_logos.get(channelid) or get_icon_path('tv')
             logo = tvg_logo
-
-            #channelname = channelname.encode("ascii")
-            #channelname = urllib.unquote_plus(channelname)
-            #channelname = channelname.decode("utf8")
 
         description = ""
         categories = ""
@@ -2359,7 +2357,7 @@ def groups():
     items = []
     load_groups = plugin.get_storage('load_groups')
 
-    conn = sqlite3.connect(xbmc.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
+    conn = sqlite3.connect(xbmcvfs.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
     cursor = conn.cursor()
 
     channelgroups = cursor.execute("SELECT DISTINCT groups FROM streams ORDER BY groups").fetchall()
@@ -2390,7 +2388,7 @@ def groups():
 def tv():
     items = []
 
-    conn = sqlite3.connect(xbmc.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
+    conn = sqlite3.connect(xbmcvfs.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
     cursor = conn.cursor()
 
     titles = cursor.execute('SELECT DISTINCT title FROM programmes WHERE episode IS NOT null AND episode IS NOT "MOVIE" AND start>? ORDER BY title', (datetime.utcnow(), )).fetchall()
@@ -2410,7 +2408,7 @@ def tv():
 def movies():
     items = []
 
-    conn = sqlite3.connect(xbmc.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
+    conn = sqlite3.connect(xbmcvfs.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
     cursor = conn.cursor()
 
     titles = cursor.execute('SELECT DISTINCT title, date FROM programmes WHERE episode IS "MOVIE" AND start>? ORDER BY title', (datetime.utcnow(), )).fetchall()
@@ -2436,7 +2434,7 @@ def movies():
 def others():
     items = []
 
-    conn = sqlite3.connect(xbmc.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
+    conn = sqlite3.connect(xbmcvfs.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
     cursor = conn.cursor()
 
     titles = cursor.execute('SELECT DISTINCT title,episode FROM programmes WHERE episode IS null AND start>? ORDER BY title', (datetime.utcnow(), )).fetchall()
@@ -2459,7 +2457,7 @@ def others():
 def categories():
     items = []
 
-    conn = sqlite3.connect(xbmc.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
+    conn = sqlite3.connect(xbmcvfs.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
     cursor = conn.cursor()
 
 
@@ -2503,7 +2501,7 @@ def full_service():
 
 @plugin.route('/service_thread')
 def service_thread():
-    conn = sqlite3.connect(xbmc.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
+    conn = sqlite3.connect(xbmcvfs.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
     cursor = conn.cursor()
 
     rules = cursor.execute('SELECT uid, channelid, channelname, title, start AS "start [TIMESTAMP]", stop AS "stop [TIMESTAMP]", description, type, name FROM rules ORDER by channelname, title, start, stop').fetchall()
@@ -2656,12 +2654,12 @@ def find_files(root):
     dirs, files = xbmcvfs.listdir(root)
     found_files = []
     for dir in dirs:
-        path = os.path.join(xbmc.translatePath(root), dir)
+        path = os.path.join(xbmcvfs.translatePath(root), dir)
         found_files = found_files + find_files(path)
     file_list = []
     for file in files:
         if file.endswith('.' + plugin.get_setting("ffmpeg.ext")):
-            file = os.path.join(xbmc.translatePath(root), file)
+            file = os.path.join(xbmcvfs.translatePath(root), file)
             file_list.append(file)
     return found_files + file_list
 
@@ -2761,7 +2759,7 @@ def xmltv():
     dialog = xbmcgui.DialogProgressBG()
     dialog.create("IPTV Recorder", _("Loading data..."))
 
-    profilePath = xbmc.translatePath(plugin.addon.getAddonInfo('profile'))
+    profilePath = xbmcvfs.translatePath(plugin.addon.getAddonInfo('profile'))
     xbmcvfs.mkdirs(profilePath)
 
     dialog.update(0, message=_("Creating database"))
@@ -2812,7 +2810,7 @@ def xmltv():
             m3uFile = 'special://profile/addon_data/plugin.video.iptv.recorder/channels'+x+'.m3u'
 
             xbmcvfs.copy(path, m3uFile)
-            f = open(xbmc.translatePath(m3uFile),'rb')
+            f = open(xbmcvfs.translatePath(m3uFile),'rb')
             data = f.read()
             if "m3u8" in path.lower():
                 data = data.decode('utf8')
@@ -3149,7 +3147,7 @@ def nuke():
     if not (xbmcgui.Dialog().yesno("IPTV Recorder", _("Delete Everything and Start Again?"))):
         return
 
-    xbmcvfs.delete(xbmc.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')))
+    xbmcvfs.delete(xbmcvfs.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')))
     time.sleep(5)
     full_service()
 
@@ -3287,7 +3285,7 @@ def select_groups():
     load_groups = plugin.get_storage('load_groups')
     load_groups.clear()
 
-    conn = sqlite3.connect(xbmc.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
+    conn = sqlite3.connect(xbmcvfs.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
     cursor = conn.cursor()
 
     channelgroups = cursor.execute("SELECT DISTINCT groups FROM streams ORDER BY groups").fetchall()
@@ -3314,8 +3312,8 @@ def estuary():
         xbmc.executeJSONRPC('{"jsonrpc":"2.0","method":"Settings.SetSettingValue","id":1,"params":{"setting":"lookandfeel.skin","value":"skin.confluence"}}')
     xbmc.executebuiltin( 'XBMC.ReloadSkin()' )
 
-    from_path = xbmc.translatePath('special://xbmc/addons/skin.estuary')
-    to_path = xbmc.translatePath('special://home/addons/skin.estuary.iptv.recorder')
+    from_path = xbmcvfs.translatePath('special://xbmc/addons/skin.estuary')
+    to_path = xbmcvfs.translatePath('special://home/addons/skin.estuary.iptv.recorder')
     #log((from_path,to_path))
     if os.path.exists(to_path):
         #TODO warning
@@ -3323,7 +3321,7 @@ def estuary():
         time.sleep(1)
     shutil.copytree(from_path, to_path)
 
-    filename = xbmc.translatePath('special://home/addons/skin.estuary.iptv.recorder/addon.xml')
+    filename = xbmcvfs.translatePath('special://home/addons/skin.estuary.iptv.recorder/addon.xml')
     with open(filename,'r') as f:
         text = f.read()
     text = text.replace('skin.estuary','skin.estuary.iptv.recorder').replace('Estuary','Estuary (IPTV Recorder)')
@@ -3338,7 +3336,7 @@ def estuary():
         with open(filename,'w') as f:
             f.write(text)
 
-    filename = xbmc.translatePath('special://home/addons/skin.estuary.iptv.recorder/xml/DialogPVRInfo.xml')
+    filename = xbmcvfs.translatePath('special://home/addons/skin.estuary.iptv.recorder/xml/DialogPVRInfo.xml')
     with open(filename,'r') as f:
         text = f.read()
     text = text.replace('<control type="grouplist" id="9000">',
@@ -3481,7 +3479,7 @@ def index():
         'context_menu': context_items,
     })
 
-    free = get_free_space_mb(xbmc.translatePath(plugin.get_setting('recordings')))
+    free = get_free_space_mb(xbmcvfs.translatePath(plugin.get_setting('recordings')))
     if free:
         items.append(
         {

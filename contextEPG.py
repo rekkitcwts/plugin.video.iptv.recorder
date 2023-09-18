@@ -1,7 +1,6 @@
-import locale
 import time
 from datetime import datetime
-import urllib
+from urllib.parse import quote_plus
 
 import xbmc
 import xbmcgui
@@ -14,9 +13,9 @@ def log(x):
 
 
 def escape(value):
-    value = value.decode("utf8")
-    value = value.encode("utf8")
-    return urllib.quote_plus(value)
+    # value = value.decode("utf8")
+    # value = value.encode("utf8")
+    return quote_plus(value)
 
 
 def get_format():
@@ -29,11 +28,11 @@ def get_format():
 def extract_date(dateLabel, timeLabel):
     date = xbmc.getInfoLabel(dateLabel)
     language = xbmc.getLanguage(xbmc.ENGLISH_NAME)
-    xbmc.log("Language: " + language, xbmc.LOGWARNING)
-    if (language == 'German') :
+    xbmc.log("(contextEPG.extract_date) Language: " + language, xbmc.LOGWARNING)
+    if language == 'German':
         # locale de_DE is not known in LibreElec 9.2.6
-        date = date.replace('Sonntag','Sunday').replace('Montag','Monday').replace('Dienstag','Tuesday').replace('Mittwoch','Wednesday').replace('Donnerstag','Thursady').replace('Freitag','Friday').replace('Samstag','Saturday')
-        date = date.replace('Januar','January').replace('Februar','February').replace('M\xe4rz','March').replace('April','April').replace('Mai','May').replace('Juni','June').replace('Juli','July').replace('Oktober','October')
+        date = date.replace('Sonntag', 'Sunday').replace('Montag', 'Monday').replace('Dienstag', 'Tuesday').replace('Mittwoch', 'Wednesday').replace('Donnerstag', 'Thursady').replace('Freitag', 'Friday').replace('Samstag', 'Saturday')
+        date = date.replace('Januar', 'January').replace('Februar', 'February').replace('M\xe4rz', 'March').replace('April', 'April').replace('Mai', 'May').replace('Juni', 'June').replace('Juli', 'July').replace('Oktober', 'October')
 
     timeString = xbmc.getInfoLabel(timeLabel)
     fullDate = "{}, {}".format(date, timeString)
