@@ -125,8 +125,6 @@ def find(path):
 
 @plugin.route('/play_channel/<channelname>')
 def play_channel(channelname):
-    # (istvan) channelname = channelname.decode("utf8")
-    #channelname = urllib.quote_plus(channelname.encode("utf8"))
 
     conn = sqlite3.connect(xbmcvfs.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')))
     c = conn.cursor()
@@ -145,8 +143,6 @@ def play_channel(channelname):
 
 @plugin.route('/play_channel_external/<channelname>')
 def play_channel_external(channelname):
-    # (istvan) channelname = channelname.decode("utf8")
-    #channelname = urllib.quote_plus(channelname.encode("utf8"))
 
     conn = sqlite3.connect(xbmcvfs.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')))
     c = conn.cursor()
@@ -450,8 +446,7 @@ def ffmpeg_location():
 
 @plugin.route('/record_once/<programmeid>/<channelid>/<channelname>')
 def record_once(programmeid, channelid, channelname, do_refresh=True, watch=False, remind=False):
-    channelid = channelid.decode("utf8")
-    # (istvan) channelname = channelname.decode("utf8")
+
     start = None
     stop = None
     threading.Thread(target=record_once_thread,args=[programmeid, do_refresh, watch, remind, channelid, channelname, start, stop, False, None]).start()
@@ -459,8 +454,7 @@ def record_once(programmeid, channelid, channelname, do_refresh=True, watch=Fals
 
 @plugin.route('/watch_once/<programmeid>/<channelid>/<channelname>')
 def watch_once(programmeid, channelid, channelname, do_refresh=True, watch=True, remind=False):
-    channelid = channelid.decode("utf8")
-    # (istvan) channelname = channelname.decode("utf8")
+
     start = None
     stop = None
     threading.Thread(target=record_once_thread,args=[programmeid, do_refresh, watch, remind, channelid, channelname, start, stop, False, None]).start()
@@ -468,8 +462,7 @@ def watch_once(programmeid, channelid, channelname, do_refresh=True, watch=True,
 
 @plugin.route('/remind_once/<programmeid>/<channelid>/<channelname>')
 def remind_once(programmeid, channelid, channelname, do_refresh=True, watch=False, remind=True):
-    channelid = channelid.decode("utf8")
-    # (istvan) channelname = channelname.decode("utf8")
+
     start = None
     stop = None
     threading.Thread(target=record_once_thread,args=[programmeid, do_refresh, watch, remind, channelid, channelname, start, stop, False, None]).start()
@@ -477,8 +470,6 @@ def remind_once(programmeid, channelid, channelname, do_refresh=True, watch=Fals
 
 @plugin.route('/record_one_time/<channelname>')
 def record_one_time( channelname):
-    #channelid = channelid.decode("utf8")
-    # (istvan) channelname = channelname.decode("utf8")
 
     utcnow = datetime.utcnow()
     ts = time.time()
@@ -507,7 +498,7 @@ def record_one_time( channelname):
     if stop < start:
         stop = stop + timedelta(days=1)
 
-    name = xbmcgui.Dialog().input("Rule Name").decode("utf8")
+    name = xbmcgui.Dialog().input("Rule Name")
 
     do_refresh = False
     watch = False
@@ -518,8 +509,6 @@ def record_one_time( channelname):
 
 @plugin.route('/record_and_play/<channelname>')
 def record_and_play(channelname):
-    #channelid = channelid.decode("utf8")
-    # (istvan) channelname = channelname.decode("utf8")
 
     utcnow = datetime.utcnow()
     ts = time.time()
@@ -544,20 +533,14 @@ def record_and_play(channelname):
 
 @plugin.route('/record_once_time/<channelid>/<channelname>/<start>/<stop>')
 def record_once_time(channelid, channelname, start, stop, do_refresh=True, watch=False, remind=True, title=None):
-    if channelid:
-        channelid = channelid.decode("utf8")
-    # (istvan) channelname = channelname.decode("utf8")
     threading.Thread(target=record_once_thread,args=[None, do_refresh, watch, remind, channelid, channelname, start, stop, False, title]).start()
 
 
 @plugin.route('/record_epg/<channelname>/<name>/<start>/<stop>')
 def record_epg(channelname, name, start, stop):
 
-    # (istvan) channelname = channelname.decode("utf8")
-    # (istvan) name = name.decode("utf8")
-
-    start = get_utc_from_string(start.decode("utf8"))
-    stop = get_utc_from_string(stop.decode("utf8"))
+    start = get_utc_from_string(start)
+    stop = get_utc_from_string(stop)
 
     xbmc.log("Scheduling record for '{}: ({} to {})'".format(channelname, start, stop),xbmc.LOGINFO)
 
@@ -988,8 +971,6 @@ def refresh():
 
 @plugin.route('/record_daily_time/<channelname>')
 def record_daily_time(channelname):
-    #channelid = channelid.decode("utf8")
-    # (istvan) channelname = channelname.decode("utf8")
 
     utcnow = datetime.utcnow()
     ts = time.time()
@@ -1009,7 +990,7 @@ def record_daily_time(channelname):
     if stop < start:
         stop = stop + timedelta(days=1)
 
-    name = xbmcgui.Dialog().input("Rule Name").decode("utf8")
+    name = xbmcgui.Dialog().input("Rule Name")
 
     conn = sqlite3.connect(xbmcvfs.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
     cursor = conn.cursor()
@@ -1031,8 +1012,6 @@ def record_daily_time(channelname):
 
 @plugin.route('/record_weekly_time/<channelname>')
 def record_weekly_time(channelname):
-    #channelid = channelid.decode("utf8")
-    # (istvan) channelname = channelname.decode("utf8")
 
     utcnow = datetime.utcnow()
     ts = time.time()
@@ -1058,7 +1037,7 @@ def record_weekly_time(channelname):
     if stop < start:
         stop = stop + timedelta(days=1)
 
-    name = xbmcgui.Dialog().input("Rule Name").decode("utf8")
+    name = xbmcgui.Dialog().input("Rule Name")
 
     conn = sqlite3.connect(xbmcvfs.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
     cursor = conn.cursor()
@@ -1080,10 +1059,7 @@ def record_weekly_time(channelname):
 
 @plugin.route('/record_daily/<channelid>/<channelname>/<title>/<start>/<stop>')
 def record_daily(channelid, channelname, title, start, stop):
-    channelid = channelid.decode("utf8")
-    # (istvan) channelname = channelname.decode("utf8")
-    title = title.decode("utf8")
-    title = xbmcgui.Dialog().input(_("% is Wildcard"), title).decode("utf8")
+    title = xbmcgui.Dialog().input(_("% is Wildcard"), title)
 
     start = timestamp2datetime(float(start))
     stop = timestamp2datetime(float(stop))
@@ -1106,10 +1082,7 @@ def record_daily(channelid, channelname, title, start, stop):
 
 @plugin.route('/record_weekly/<channelid>/<channelname>/<title>/<start>/<stop>')
 def record_weekly(channelid, channelname, title, start, stop):
-    channelid = channelid.decode("utf8")
-    # (istvan) channelname = channelname.decode("utf8")
-    title = title.decode("utf8")
-    title = xbmcgui.Dialog().input(_("% is Wildcard"), title).decode("utf8")
+    title = xbmcgui.Dialog().input(_("% is Wildcard"), title)
 
     start = timestamp2datetime(float(start))
     stop = timestamp2datetime(float(stop))
@@ -1132,10 +1105,8 @@ def record_weekly(channelid, channelname, title, start, stop):
 
 @plugin.route('/record_always/<channelid>/<channelname>/<title>')
 def record_always(channelid, channelname, title):
-    channelid = channelid.decode("utf8")
-    # (istvan) channelname = channelname.decode("utf8")
-    title = title.decode("utf8")
-    title = xbmcgui.Dialog().input(_("% is Wildcard"), title).decode("utf8")
+
+    title = xbmcgui.Dialog().input(_("% is Wildcard"), title)
 
     conn = sqlite3.connect(xbmcvfs.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
     cursor = conn.cursor()
@@ -1154,10 +1125,8 @@ def record_always(channelid, channelname, title):
 
 @plugin.route('/record_always_search/<channelid>/<channelname>')
 def record_always_search(channelid, channelname):
-    channelid = channelid.decode("utf8")
-    # (istvan) channelname = channelname.decode("utf8")
 
-    title = xbmcgui.Dialog().input("IPTV Recorder: " + _("Title Search (% is wildcard)?")).decode("utf8")
+    title = xbmcgui.Dialog().input("IPTV Recorder: " + _("Title Search (% is wildcard)?"))
     if not title:
         return
 
@@ -1178,10 +1147,8 @@ def record_always_search(channelid, channelname):
 
 @plugin.route('/record_always_search_plot/<channelid>/<channelname>')
 def record_always_search_plot(channelid, channelname):
-    channelid = channelid.decode("utf8")
-    # (istvan) channelname = channelname.decode("utf8")
 
-    description = xbmcgui.Dialog().input("IPTV Recorder: " + _("Plot Search (% is wildcard)?")).decode("utf8")
+    description = xbmcgui.Dialog().input("IPTV Recorder: " + _("Plot Search (% is wildcard)?"))
     if not description:
         return
 
@@ -1202,10 +1169,7 @@ def record_always_search_plot(channelid, channelname):
 
 @plugin.route('/watch_daily/<channelid>/<channelname>/<title>/<start>/<stop>')
 def watch_daily(channelid, channelname, title, start, stop):
-    channelid = channelid.decode("utf8")
-    # (istvan) channelname = channelname.decode("utf8")
-    title = title.decode("utf8")
-    title = xbmcgui.Dialog().input(_("% is Wildcard"), title).decode("utf8")
+    title = xbmcgui.Dialog().input(_("% is Wildcard"), title)
 
     start = timestamp2datetime(float(start))
     stop = timestamp2datetime(float(stop))
@@ -1228,10 +1192,7 @@ def watch_daily(channelid, channelname, title, start, stop):
 
 @plugin.route('/watch_weekly/<channelid>/<channelname>/<title>/<start>/<stop>')
 def watch_weekly(channelid, channelname, title, start, stop):
-    channelid = channelid.decode("utf8")
-    # (istvan) channelname = channelname.decode("utf8")
-    title = title.decode("utf8")
-    title = xbmcgui.Dialog().input(_("% is Wildcard"), title).decode("utf8")
+    title = xbmcgui.Dialog().input(_("% is Wildcard"), title)
 
     start = timestamp2datetime(float(start))
     stop = timestamp2datetime(float(stop))
@@ -1254,10 +1215,7 @@ def watch_weekly(channelid, channelname, title, start, stop):
 
 @plugin.route('/watch_always/<channelid>/<channelname>/<title>')
 def watch_always(channelid, channelname, title):
-    channelid = channelid.decode("utf8")
-    # (istvan) channelname = channelname.decode("utf8")
-    title = title.decode("utf8")
-    title = xbmcgui.Dialog().input(_("% is Wildcard"), title).decode("utf8")
+    title = xbmcgui.Dialog().input(_("% is Wildcard"), title)
 
     conn = sqlite3.connect(xbmcvfs.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
     cursor = conn.cursor()
@@ -1276,10 +1234,8 @@ def watch_always(channelid, channelname, title):
 
 @plugin.route('/watch_always_search/<channelid>/<channelname>')
 def watch_always_search(channelid, channelname):
-    channelid = channelid.decode("utf8")
-    # (istvan) channelname = channelname.decode("utf8")
 
-    title = xbmcgui.Dialog().input("IPTV watcher: " + _("Title Search (% is wildcard)?")).decode("utf8")
+    title = xbmcgui.Dialog().input("IPTV watcher: " + _("Title Search (% is wildcard)?"))
     if not title:
         return
 
@@ -1300,10 +1256,7 @@ def watch_always_search(channelid, channelname):
 
 @plugin.route('/watch_always_search_plot/<channelid>/<channelname>')
 def watch_always_search_plot(channelid, channelname):
-    channelid = channelid.decode("utf8")
-    # (istvan) channelname = channelname.decode("utf8")
-
-    description = xbmcgui.Dialog().input("IPTV watcher: " + _("Plot Search (% is wildcard)?")).decode("utf8")
+    description = xbmcgui.Dialog().input("IPTV watcher: " + _("Plot Search (% is wildcard)?"))
     if not description:
         return
 
@@ -1324,10 +1277,7 @@ def watch_always_search_plot(channelid, channelname):
 
 @plugin.route('/remind_daily/<channelid>/<channelname>/<title>/<start>/<stop>')
 def remind_daily(channelid, channelname, title, start, stop):
-    channelid = channelid.decode("utf8")
-    # (istvan) channelname = channelname.decode("utf8")
-    title = title.decode("utf8")
-    title = xbmcgui.Dialog().input(_("% is Wildcard"), title).decode("utf8")
+    title = xbmcgui.Dialog().input(_("% is Wildcard"), title)
 
     start = timestamp2datetime(float(start))
     stop = timestamp2datetime(float(stop))
@@ -1350,10 +1300,7 @@ def remind_daily(channelid, channelname, title, start, stop):
 
 @plugin.route('/remind_weekly/<channelid>/<channelname>/<title>/<start>/<stop>')
 def remind_weekly(channelid, channelname, title, start, stop):
-    channelid = channelid.decode("utf8")
-    # (istvan) channelname = channelname.decode("utf8")
-    title = title.decode("utf8")
-    title = xbmcgui.Dialog().input(_("% is Wildcard"), title).decode("utf8")
+    title = xbmcgui.Dialog().input(_("% is Wildcard"), title)
 
     start = timestamp2datetime(float(start))
     stop = timestamp2datetime(float(stop))
@@ -1376,10 +1323,7 @@ def remind_weekly(channelid, channelname, title, start, stop):
 
 @plugin.route('/remind_always/<channelid>/<channelname>/<title>')
 def remind_always(channelid, channelname, title):
-    channelid = channelid.decode("utf8")
-    # (istvan) channelname = channelname.decode("utf8")
-    title = title.decode("utf8")
-    title = xbmcgui.Dialog().input(_("% is Wildcard"), title).decode("utf8")
+    title = xbmcgui.Dialog().input(_("% is Wildcard"), title)
 
     conn = sqlite3.connect(xbmcvfs.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
     cursor = conn.cursor()
@@ -1398,10 +1342,8 @@ def remind_always(channelid, channelname, title):
 
 @plugin.route('/remind_always_search/<channelid>/<channelname>')
 def remind_always_search(channelid, channelname):
-    channelid = channelid.decode("utf8")
-    # (istvan) channelname = channelname.decode("utf8")
 
-    title = xbmcgui.Dialog().input("IPTV reminder: " + _("Title Search (% is wildcard)?")).decode("utf8")
+    title = xbmcgui.Dialog().input("IPTV reminder: " + _("Title Search (% is wildcard)?"))
     if not title:
         return
 
@@ -1422,10 +1364,8 @@ def remind_always_search(channelid, channelname):
 
 @plugin.route('/remind_always_search_plot/<channelid>/<channelname>')
 def remind_always_search_plot(channelid, channelname):
-    channelid = channelid.decode("utf8")
-    # (istvan) channelname = channelname.decode("utf8")
 
-    description = xbmcgui.Dialog().input("IPTV reminder: " + _("Plot Search (% is wildcard)?")).decode("utf8")
+    description = xbmcgui.Dialog().input("IPTV reminder: " + _("Plot Search (% is wildcard)?"))
     if not description:
         return
 
@@ -1446,8 +1386,6 @@ def remind_always_search_plot(channelid, channelname):
 
 @plugin.route('/broadcast/<programmeid>/<channelname>')
 def broadcast(programmeid, channelname):
-    # (istvan) channelname = channelname.decode("utf8")
-    # channelname = urllib.unquote_plus(channelname)
     log('PROGRAMMEID: '  + programmeid)
     log('CHANNELNAME: '  + channelname)
 
@@ -1642,7 +1580,6 @@ def day(timestamp):
 
 @plugin.route('/delete_search_title/<title>')
 def delete_search_title(title):
-    title = title.decode("utf8")
 
     searches = plugin.get_storage('search_title')
     if title in searches:
@@ -1680,7 +1617,7 @@ def search_title_input(title):
     if title == "title":
         title = ""
     d = xbmcgui.Dialog()
-    what = d.input(_("Search Title"), title).decode("utf8")
+    what = d.input(_("Search Title"), title)
     #log(what)
     if not what:
         return
@@ -1690,7 +1627,6 @@ def search_title_input(title):
 
 @plugin.route('/search_title/<title>')
 def search_title(title):
-    title = title.decode("utf8")
 
     if plugin.get_setting('add.context.searches') == 'true':
         searches = plugin.get_storage('search_title')
@@ -1711,7 +1647,6 @@ def search_title(title):
 
 @plugin.route('/delete_search_plot/<plot>')
 def delete_search_plot(plot):
-    plot = plot.decode("utf8")
 
     searches = plugin.get_storage('search_plot')
     if plot in searches:
@@ -1744,12 +1679,11 @@ def search_plot_dialog():
 
 @plugin.route('/search_plot_input/<plot>')
 def search_plot_input(plot):
-    plot = plot.decode("utf8")
     searches = plugin.get_storage('search_plot')
     if plot == "plot":
         plot = ""
     d = xbmcgui.Dialog()
-    what = d.input(_("Search Plot"), plot).decode("utf8")
+    what = d.input(_("Search Plot"), plot)
     if not what:
         return
     searches[what] = ''
@@ -1758,8 +1692,6 @@ def search_plot_input(plot):
 
 @plugin.route('/search_plot/<plot>')
 def search_plot(plot):
-    plot = plot.decode("utf8")
-
     #TODO combine with search_title() and group()
     conn = sqlite3.connect(xbmcvfs.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
     cursor = conn.cursor()
@@ -1776,7 +1708,6 @@ def search_plot(plot):
 
 @plugin.route('/delete_search_categories/<categories>')
 def delete_search_categories(categories):
-    categories = categories.decode("utf8")
 
     searches = plugin.get_storage('search_categories')
     if categories in searches:
@@ -1809,7 +1740,6 @@ def search_categories_dialog():
 
 @plugin.route('/search_categories_input/<categories>')
 def search_categories_input(categories):
-    categories = categories.decode("utf8")
     conn = sqlite3.connect(xbmcvfs.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
     cursor = conn.cursor()
 
@@ -1840,7 +1770,6 @@ def search_categories_input(categories):
 
 @plugin.route('/search_categories/<categories>')
 def search_categories(categories):
-    categories = categories.decode("utf8")
 
     if plugin.get_setting('add.context.searches') == 'true':
         searches = plugin.get_storage('search_categories')
@@ -1862,9 +1791,7 @@ def search_categories(categories):
 
 @plugin.route('/channel/<channelid>/<channelname>')
 def channel(channelid,channelname):
-    channelid = channelid.decode("utf8")
     echannelname = channelname
-    # (istvan) channelname = channelname.decode("utf8")
 
     conn = sqlite3.connect(xbmcvfs.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
     cursor = conn.cursor()
@@ -1895,7 +1822,6 @@ def channel(channelid,channelname):
 
 @plugin.route('/tv_show/<title>')
 def tv_show(title):
-    title = title.decode("utf8")
 
     conn = sqlite3.connect(xbmcvfs.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
     cursor = conn.cursor()
@@ -1911,7 +1837,6 @@ def tv_show(title):
 
 @plugin.route('/other/<title>')
 def other(title):
-    title = title.decode("utf8")
 
     conn = sqlite3.connect(xbmcvfs.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
     cursor = conn.cursor()
@@ -1927,8 +1852,6 @@ def other(title):
 
 @plugin.route('/category/<title>')
 def category(title):
-    title = title.decode("utf8")
-
     conn = sqlite3.connect(xbmcvfs.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
     cursor = conn.cursor()
 
@@ -1943,7 +1866,6 @@ def category(title):
 
 @plugin.route('/movie/<title>/<date>')
 def movie(title, date):
-    title = title.decode("utf8")
 
     conn = sqlite3.connect(xbmcvfs.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
     cursor = conn.cursor()
@@ -2129,7 +2051,6 @@ def focus(i):
 
 @plugin.route('/remove_favourite_channel/<channelname>')
 def remove_favourite_channel(channelname):
-    # (istvan) channelname = channelname.decode("utf8")
 
     conn = sqlite3.connect(xbmcvfs.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')))
 
@@ -2143,8 +2064,6 @@ def remove_favourite_channel(channelname):
 
 @plugin.route('/add_favourite_channel/<channelname>/<channelid>/<thumbnail>')
 def add_favourite_channel(channelname, channelid, thumbnail):
-    channelid = channelid.decode("utf8")
-    # (istvan) channelname = channelname.decode("utf8")
 
     conn = sqlite3.connect(xbmcvfs.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')))
 
@@ -2188,9 +2107,6 @@ def epg():
 
 @plugin.route('/group/<channelgroup>')
 def group(channelgroup=None,section=None):
-    if channelgroup:
-        channelgroup=channelgroup.decode("utf8")
-
     show_now_next = False
 
     conn = sqlite3.connect(xbmcvfs.translatePath('%sxmltv.db' % plugin.addon.getAddonInfo('profile')), detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
@@ -2621,7 +2537,7 @@ def service_thread():
 
 @plugin.route('/delete_recording/<label>/<path>')
 def delete_recording(label, path):
-    label = label.decode("utf8")
+
     if not (xbmcgui.Dialog().yesno("IPTV Recorder", "[COLOR red]" + _("Delete Recording?") + "[/COLOR]", label)):
         return
     xbmcvfs.delete(path)
@@ -2761,7 +2677,7 @@ def xmltv():
 
     profilePath = xbmcvfs.translatePath(plugin.addon.getAddonInfo('profile'))
     xbmcvfs.mkdirs(profilePath)
-
+    #  log('(istvan) profilepath: ' + profilePath);
     dialog.update(0, message=_("Creating database"))
     databasePath = os.path.join(profilePath, 'xmltv.db')
     conn = sqlite3.connect(databasePath, detect_types=sqlite3.PARSE_DECLTYPES)
