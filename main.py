@@ -30,7 +30,7 @@ import time
 import urllib
 import uuid
 import xbmc, xbmcaddon, xbmcvfs, xbmcgui, xbmcplugin
-
+import urllib.request
 
 def addon_id():
     return xbmcaddon.Addon().getAddonInfo('id')
@@ -40,13 +40,13 @@ def log(v):
     xbmc.log(repr(v), xbmc.LOGERROR)
 
 def linkFromJWPlayer(jwpLink):
-    fp = urllib.urlopen(jwpLink)
-    htmljs = fp.read().decode("utf8")
-    fp.close()
-    m3 = re.match(r'(.*)pl\.setup\((.*?)\)\;', htmljs, re.DOTALL)
-    y = json.loads(m3.group(2))
-    m3streamUrl = y['playlist'][0]['file']
-    # ex: //c402-node61-cdn.connectmedia.hu/1102/49c290585c874a82e0b39d4f3c2708b2/60449c37/index.m3u8?v=5i
+    with urllib.request.urlopen(jwpLink) as f:
+        htmljs = f.read().decode("utf8")
+
+        m3 = re.match(r'(.*)pl\.setup\((.*?)\)\;', htmljs, re.DOTALL)
+        y = json.loads(m3.group(2))
+        m3streamUrl = y['playlist'][0]['file']
+        # ex: //c402-node61-cdn.connectmedia.hu/1102/49c290585c874a82e0b39d4f3c2708b2/60449c37/index.m3u8?v=5i
     if not m3streamUrl.startswith('http'): m3streamUrl = 'http:' + m3streamUrl
     return m3streamUrl
 
@@ -731,8 +731,7 @@ def record_once_thread(programmeid, do_refresh=True, watch=False, remind=False, 
 
     post_command = plugin.get_setting('post.command')
     post_cmd = post_command.split(' ')
-    post_cmd = [s.replace("$p",ffmpeg_recording_path.encode('utf8')).replace("$d",ffmpeg_dir.encode('utf8')).replace("$f",filename.encode('utf8') + '.' + plugin.get_setting("ffmpeg.ext")) for s in post_cmd]
-
+    post_cmd = [s.replace("$p",ffmpeg_recording_path).replace("$d",ffmpeg_dir).replace("$f",filename + '.' + plugin.get_setting("ffmpeg.ext")) for s in post_cmd]
     directory = "special://profile/addon_data/plugin.video.iptv.recorder/jobs/"
     xbmcvfs.mkdirs(directory)
     job = str(uuid.uuid1())
@@ -780,7 +779,7 @@ def record_once_thread(programmeid, do_refresh=True, watch=False, remind=False, 
         f.write("f.write(repr(p.pid))\n")
         f.write("f.close()\n")
         if (plugin.get_setting('ffmpeg.pipe') == 'true') and not (windows() and (plugin.get_setting('task.scheduler') == 'true')):
-            f.write('video = xbmcvfs.File(r"%s","wb")\n' % path.encode('utf8'))
+            f.write("video = xbmcvfs.File(r'%s','wb')\n" % path)
             f.write('playing = False\n')
             f.write("while True:\n")
             f.write("  data = p.stdout.read(1000000)\n")
@@ -952,7 +951,6 @@ def sane_name(name):
     if not name:
         return
     if windows() or (plugin.get_setting('filename.urlencode') == 'true'):
-        name = urllib.quote(name.encode("utf8"))
         name = name.replace("%20",' ')
         name = name.replace('/',"%2F")
     else:
@@ -2669,6 +2667,7 @@ def xml2utc(xml):
 
 @plugin.route('/xmltv')
 def xmltv():
+    xbmc.log("-----> @plugin.route('/xmltv')",xbmc.LOGINFO)
     load_groups = plugin.get_storage('load_groups')
     load_channels = {}
 
@@ -2677,9 +2676,11 @@ def xmltv():
 
     profilePath = xbmcvfs.translatePath(plugin.addon.getAddonInfo('profile'))
     xbmcvfs.mkdirs(profilePath)
-    #  log('(istvan) profilepath: ' + profilePath);
+    log('(istvan) profilepath: ' + profilePath);
+
     dialog.update(0, message=_("Creating database"))
     databasePath = os.path.join(profilePath, 'xmltv.db')
+    log('(istvan) create database: ' + databasePath);
     conn = sqlite3.connect(databasePath, detect_types=sqlite3.PARSE_DECLTYPES)
     conn.execute('PRAGMA foreign_keys = ON')
     conn.row_factory = sqlite3.Row
@@ -2712,7 +2713,8 @@ def xmltv():
                         path = xbmcaddon.Addon('pvr.iptvsimple').getSetting('m3uPath')
                     else:
                         path = xbmcaddon.Addon('pvr.iptvsimple').getSetting('m3uUrl')
-                except:
+                except Exception as error:
+                    log('(istvan) error: ' + type(error).__name__);
                     path = ""
             else:
                 path = ""
@@ -2721,6 +2723,9 @@ def xmltv():
         else:
             path = plugin.get_setting('external.m3u.url.'+x)
 
+        # TODO reading from configuration
+        path = "https://pityukodirepo.000webhostapp.com/configs/szi_mylist.m3u"
+        xbmc.log("-----> path: " + path, xbmc.LOGINFO)
         if path:
 
             m3uFile = 'special://profile/addon_data/plugin.video.iptv.recorder/channels'+x+'.m3u'
@@ -3142,6 +3147,8 @@ def browse_index():
 
 @plugin.route('/maintenance_index')
 def maintenance_index():
+    # istvan (added xmltv)
+    xmltv()
     items = []
     context_items = []
 
@@ -3313,6 +3320,7 @@ def get_free_space_mb(dirname):
 
 @plugin.route('/')
 def index():
+    xbmc.log("---> @plugin.route('/')", xbmc.LOGINFO)
     items = []
     context_items = []
 
